@@ -4,8 +4,7 @@ feedback =
   default_feedback:
     warning: ''
     suggestions: [
-      "Use a few words, avoid common phrases"
-      "No need for symbols, digits, or uppercase letters"
+      "Evite frases comuns"
     ]
 
   get_feedback: (score, sequence) ->
@@ -22,7 +21,7 @@ feedback =
     for match in sequence[1..]
       longest_match = match if match.token.length > longest_match.token.length
     feedback = @get_match_feedback(longest_match, sequence.length == 1)
-    extra_feedback = 'Add another word or two. Uncommon words are better.'
+    extra_feedback = 'Adicione mais uma ou duas palavras. Palavras pouco comuns são melhores'
     if feedback?
       feedback.suggestions.unshift extra_feedback
       feedback.warning = '' unless feedback.warning?
@@ -40,77 +39,77 @@ feedback =
       when 'spatial'
         layout = match.graph.toUpperCase()
         warning = if match.turns == 1
-          'Straight rows of keys are easy to guess'
+          'Sequência de teclas em ordem crescente ou descrente não são seguras'
         else
-          'Short keyboard patterns are easy to guess'
+          'Padrões de teclas não são seguras'
         warning: warning
         suggestions: [
-          'Use a longer keyboard pattern with more turns'
+          'Use diferentes padrões de teclas'
         ]
 
       when 'repeat'
         warning = if match.base_token.length == 1
-          'Repeats like "aaa" are easy to guess'
+          'Repetições como "aaa" não são seguras'
         else
-          'Repeats like "abcabcabc" are only slightly harder to guess than "abc"'
+          'Repetições como "abcabcabc" não são mais seguras que "abc"'
         warning: warning
         suggestions: [
-          'Avoid repeated words and characters'
+          'Evite palavras e caracteres repetidos'
         ]
 
       when 'sequence'
-        warning: "Sequences like abc or 6543 are easy to guess"
+        warning: 'Sequências como "abc" ou "6543" não são seguras'
         suggestions: [
-          'Avoid sequences'
+          'Evite sequências'
         ]
 
       when 'regex'
         if match.regex_name == 'recent_year'
-          warning: "Recent years are easy to guess"
+          warning: "Anos recentes não são seguros"
           suggestions: [
-            'Avoid recent years'
-            'Avoid years that are associated with you'
+            'Não utilize anos recentes'
+            'Evite anos que estão associados com você'
           ]
 
       when 'date'
-        warning: "Dates are often easy to guess"
+        warning: "Datas não são seguras"
         suggestions: [
-          'Avoid dates and years that are associated with you'
+          'Evite datas que estão associadas com você'
         ]
 
   get_dictionary_match_feedback: (match, is_sole_match) ->
     warning = if match.dictionary_name == 'passwords'
       if is_sole_match and not match.l33t and not match.reversed
         if match.rank <= 10
-          'This is a top-10 common password'
+          'Essa é uma das 10 senhas mais utilizadas'
         else if match.rank <= 100
-          'This is a top-100 common password'
+          'Essa é uma das 100 senhas mais utilizadas'
         else
-          'This is a very common password'
+          'Essa senha é muito comum'
       else if match.guesses_log10 <= 4
-        'This is similar to a commonly used password'
+        'Essa senha é comumente utilizada'
     else if match.dictionary_name == 'english_wikipedia'
       if is_sole_match
-        'A word by itself is easy to guess'
+        'Palavras comuns não são seguras'
     else if match.dictionary_name in ['surnames', 'male_names', 'female_names']
       if is_sole_match
-        'Names and surnames by themselves are easy to guess'
+        'Nomes e sobrenomes não são seguros'
       else
-        'Common names and surnames are easy to guess'
+        'Utilizar nomes e sobrenomes não é seguros'
     else
       ''
-
+      
     suggestions = []
     word = match.token
     if word.match(scoring.START_UPPER)
-      suggestions.push "Capitalization doesn't help very much"
+      suggestions.push "Palavras em letra maiúscula não ajudam na segurança"
     else if word.match(scoring.ALL_UPPER) and word.toLowerCase() != word
-      suggestions.push "All-uppercase is almost as easy to guess as all-lowercase"
+      suggestions.push "Palavras em letra maiúscula não ajudam na segurança"
 
     if match.reversed and match.token.length >= 4
-      suggestions.push "Reversed words aren't much harder to guess"
+      suggestions.push "Palavras invertidas não são seguras"
     if match.l33t
-      suggestions.push "Predictable substitutions like '@' instead of 'a' don't help very much"
+      suggestions.push "Substituições previsíveis como '@' em vez de 'a' não ajudam na segurança de sua senha"
 
     result =
       warning: warning
